@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<HTML>
+<head>
+<style>
+HTML,body,#map{width:100%;height:100%;padding:0;margin:0;}
+</style>
+
+<title>Mapa lokalizacji lotnisk na świecie</title>
+<meta charset="UTF-8">
+</head>
+
+<body>
+<div id="map"></div>
+
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<script src="leaflet/leaflet.js"></script>
+<script src="filtered_lotniska_afryka.js"></script>
+<script src="filtered_lotniska_ameryka_pln.js"></script>
+<script src="filtered_lotniska_ameryka_pol.js"></script>
+<script src="filtered_lotniska_azja.js"></script>
+<script src="filtered_lotniska_europa.js"></script>
+<script src="filtered_lotniska_oceania_australia.js"></script>
+<script src="filtered_lotniska_polska.js"></script>
+<script src="leaflet.WorldMiniMap-main/src/Control.WorldMiniMap.js"></script>
+<script src="Leaflet.Legend-master/src/leaflet.legend.js"></script>
+<script>
+
+var mymap = L.map('map', {maxZoom: 2000}).setView([52.02, 20.19], 5);
+var osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}', {foo: 'bar', attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'})
+osm.addTo(mymap)
+
+var worldMiniMap = L.control.worldMiniMap({
+    position: 'bottomright', 
+    style: {
+        opacity: 0.9, 
+        borderRadius: '0px', 
+        backgroundColor: 'lightblue'
+    }
+}).addTo(mymap);
+
+L.control.Legend({
+    position: "bottomright",
+    legends: [{
+        label: "Ikona dla portu lotniczego w Europie",
+        type: "image",
+        url: "plane.png",
+    },
+    {
+        label: "Ikona dla portu lotniczego w Afryce",
+        type: "image",
+        url: "plane_afryka.png",
+    },
+    {
+        label: "Ikona dla portu lotniczego w Ameryce Północnej",
+        type: "image",
+        url: "plane_amerykagora.png",
+    },
+    {
+        label: "Ikona dla portu lotniczego w Ameryce Południowej",
+        type: "image",
+        url: "plane_amerykadol.png",
+    },
+    {
+        label: "Ikona dla portu lotniczego w Azji",
+        type: "image",
+        url: "plane_azja.png",
+    },
+    {
+        label: "Ikona dla portu lotniczego w Australii i Oceanii",
+        type: "image",
+        url: "plane_oceania.png",
+    },
+    ]
+}).addTo(mymap).getContainer().classList.add('custom-legend');
+
+var opacityButton = document.createElement('button');
+opacityButton.innerHTML = 'Change Legend Opacity';
+opacityButton.style.position = 'absolute';
+opacityButton.style.bottom = '365px';
+opacityButton.style.right = '10px'; // Ustawienie pozycji przycisku
+opacityButton.style.zIndex = 9999; // Ustawienie, by przycisk był nad innymi elementami
+
+// Początkowy poziom przezroczystości (1 - 100%)
+var opacityLevels = [1, 0.75, 0.5, 0.25]; 
+var currentOpacityIndex = 0; // Rozpoczynamy od pełnej przezroczystości
+
+// Funkcja zmieniająca przezroczystość
+opacityButton.onclick = function() {
+  // Zmieniamy indeks i przypisujemy nowy poziom przezroczystości
+  currentOpacityIndex = (currentOpacityIndex + 1) % opacityLevels.length;
+  
+  // Ustawienie nowego poziomu przezroczystości dla legendy
+  document.querySelector('.custom-legend').style.opacity = opacityLevels[currentOpacityIndex];
+};
+
+document.body.appendChild(opacityButton);
+
+var l_polska_points = L.geoJSON(l_polska,{
+	onEachFeature: oEF,
+	pointToLayer: PToL_polska
+});
+
+var l_europa_points = L.geoJSON(l_europa,{
+	onEachFeature: oEF,
+	pointToLayer: PToL_polska
+}).addTo(mymap);
+
+var l_ameryka_gora_points = L.geoJSON(l_ameryka_gora, {
+	onEachFeature: oEF,
+	pointToLayer: PToL_ameryka_gora
+});
+
+var l_ameryka_dol_points = L.geoJSON(l_ameryka_dol, {
+	onEachFeature: oEF,
+	pointToLayer: PToL_ameryka_dol
+});
+
+var l_afryka_points = L.geoJSON(l_afryka, {
+	onEachFeature: oEF,
+	pointToLayer: PToL_afryka
+});
+
+var l_azja_points = L.geoJSON(l_azja, {
+	onEachFeature: oEF,
+	pointToLayer: PToL_azja
+});
+
+var l_oceania_points = L.geoJSON(l_oce_aus, {
+	onEachFeature: oEF,
+	pointToLayer: PToL_oceania
+});
+
+
+function PToL_polska(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function PToL_afryka(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane_afryka.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function PToL_azja(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane_azja.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function PToL_oceania(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane_oceania.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function PToL_ameryka_dol(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane_amerykadol.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function PToL_ameryka_gora(feature, latlng) {
+    var airplaneIcon = L.icon({
+        iconUrl: 'plane_amerykagora.png', 
+        iconSize: [16, 16], // Rozmiar ikony
+        iconAnchor: [8, 8], // Punkt zakotwiczenia (środek ikony)
+        popupAnchor: [0, -8] // Punkt wyświetlania wyskakującego okna informacyjnego
+    });
+
+    return L.marker(latlng, { icon: airplaneIcon });
+}
+
+function oEF (feature, layer) {
+	var props = feature.properties;
+	layer.bindTooltip(props.nazwa,
+	{permament: true}
+	);
+}
+
+
+
+L.control.scale().addTo(mymap);
+
+var baseLayers = {
+	"OpenStreetMap": osm
+};
+
+var overlays = {
+	"Porty lotnicze w Polsce": l_polska_points,
+	"Porty lotnicze w Afryce": l_afryka_points,
+	"Porty lotnicze w Azji": l_azja_points,
+	"Porty lotnicze w Australii i Oceanii": l_oceania_points,
+	"Porty lotnicze w Ameryce Północnej": l_ameryka_gora_points,
+	"Porty lotnicze w Ameryce Południowej": l_ameryka_dol_points,
+	"Porty lotnicze w Europie": l_europa_points,
+};
+L.control.layers(baseLayers,overlays).addTo(mymap);
+
+mymap.attributionControl.setPrefix(
+	'<a href="http://leafletjs.com">Leaflet</a> | Mapa portów lotniczych',
+	);
+
+	
+</script>
+
+</body>
+</HTML>
